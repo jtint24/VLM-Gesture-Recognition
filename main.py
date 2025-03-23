@@ -1,11 +1,14 @@
 import io
+import time
 
 from gesture_recognition import Gesture, GestureRecognizer, capture_image
 from model import Model
 
 import PIL.Image as Image
 
-if __name__ == "__main__":
+from simulation import ControlsSimulation
+
+"""if __name__ == "__main__":
     model = Model("llava")
     recognizer = GestureRecognizer(model)
 
@@ -30,4 +33,51 @@ if __name__ == "__main__":
             for g in recognized_gestures:
                 print(f"- {g.name}")
         else:
-            print("no gestures recognized")
+            print("no gestures recognized")"""
+
+
+if __name__ == "__main__":
+    model = Model("llava")
+    recognizer = GestureRecognizer(model)
+
+    gestures = [
+        Gesture("smile", "face smiling."),
+        Gesture("frown", "face frowning."),
+        Gesture("wink", "one eye is closed"),
+        Gesture("eyes open", "eyes are both open"),
+    ]
+
+    gesture_semantics = {
+        gestures[0]: "thermostat_up",
+        gestures[1]: "thermostat_down",
+        gestures[2]: "lights_on",
+        gestures[3]: "lights_off",
+    }
+
+    simulation = ControlsSimulation(
+        gesture_semantics=gesture_semantics,
+        recognizer=recognizer,
+        time_limit_seconds=60
+    )
+
+    simulation.start()
+    while True:
+        image = capture_image()
+
+        if image is None:
+            break
+
+        try:
+            image_file = Image.open(io.BytesIO(image))
+            image_file.save("frame.jpg")
+        except Exception as e:
+            print(f"ERROR: {e}")
+
+        result = simulation.update(time.time(), image)
+
+        if result is True:
+            print(f"Task completed successfully! time: {time.time() - simulation.start_time_seconds}")
+            break
+        elif result is False:
+            print("Task failed")
+            break

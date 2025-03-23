@@ -1,4 +1,4 @@
-from typing import Optional, NamedTuple
+from typing import Optional, NamedTuple, List
 
 import cv2
 import time
@@ -16,27 +16,20 @@ class GestureRecognizer:
     def __init__(self, model: Model):
         self.model = model
 
-    def recognize(self, image_bytes: bytes, gestures: list[Gesture]) -> list[Gesture]:
+    def recognize(self, image_bytes: bytes, gestures: List[Gesture]) -> List[Gesture]:
         """
         Given an image and a list of known gestures, return which ones are being performed.
         """
-
-        gesture_list_text = "\n".join(
-            f"{n+1}. {gesture.name}: {gesture.description}" for n, gesture in enumerate(gestures)
-        )
-
-        prompt = f"For each of these gestures, list if it's present in the image. Respond with the gesture's name, then YES or NO: \n{gesture_list_text}"
-
-        response = self.model(prompt, [image_bytes], max_tokens=500)
-
-        response_lines = response.split("\n")
-        print(prompt, "\n", response)
         recognized = []
-
         for gesture in gestures:
-            for line in response_lines:
-                if gesture.name in line.lower() and "yes" in line.lower():
-                    recognized.append(gesture)
+            prompt = f"Is the following gesture being performed in the image?\n\n{gesture.name}: {gesture.description}\n\nRespond only with YES or NO."
+
+            response = self.model(prompt, [image_bytes], max_tokens=2)
+
+            print(prompt,response)
+
+            if "yes" in response.lower():
+                recognized.append(gesture)
 
         return recognized
 
@@ -60,7 +53,7 @@ def capture_image() -> Optional[bytes]:
         return None
 
     # resize and encode to memory buffer
-    resized_frame = cv2.resize(frame, (360, 240))
+    resized_frame = cv2.resize(frame, (180, 120))
     success, encoded_image = cv2.imencode(".jpg", resized_frame)
     if not success:
         print("Error: Failed To Encode Image!!!!!!!!")

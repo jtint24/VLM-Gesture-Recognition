@@ -1,74 +1,79 @@
-import time
-import pybullet as p
 import random
-from gesture_model import GestureInterpreter
-from gesture_recognition import GestureRecognition
+import time
+from typing import Dict, Optional
+
+import pybullet as p
+
+from gesture_recognition import Gesture, GestureRecognizer
 
 
-def initialize_simulation():
-    p.connect(p.GUI)
+class ControlsSimulation:
+    def __init__(
+            self,
+            gesture_semantics: Dict[Gesture, str],
+            recognizer: GestureRecognizer,
+            time_limit_seconds = 60,
+            start_state = None,
+            end_state = None
+    ):
+        self.recognizer = recognizer
+        self.gesture_semantics = gesture_semantics
+        self.time_limit_seconds = time_limit_seconds
+        self.start_time_seconds = -1
 
-    # wheelchair_id = p.loadURDF("wheelchair.urdf", basePosition=[0, 0, 0])
-    # arm_id = p.loadURDF("robot_arm.urdf", basePosition=[0, 0, 0])
+        self.state = start_state or {
+            "thermostat": random.randint(65, 70),
+            "lights_on": random.choice([True, False])
+        }
 
-    return wheelchair_id, arm_id
+        self.goal = end_state or {
+            "thermostat": random.randint(65, 70),
+            "lights_on": random.choice([True, False])
+        }
 
+        print("Simulation started.")
+        self.display_state()
 
-# Task: Navigate robotic wheelchair
-def navigate_wheelchair(gesture, wheelchair_id):
-    if gesture == "move_forward":
-        p.setJointMotorControl2(wheelchair_id, jointIndex=0, controlMode=p.VELOCITY_CONTROL, targetVelocity=1.0)
-    elif gesture == "move_backward":
-        p.setJointMotorControl2(wheelchair_id, jointIndex=0, controlMode=p.VELOCITY_CONTROL, targetVelocity=-1.0)
-    elif gesture == "turn_left":
-        p.setJointMotorControl2(wheelchair_id, jointIndex=1, controlMode=p.VELOCITY_CONTROL, targetVelocity=1.0)
-    elif gesture == "turn_right":
-        p.setJointMotorControl2(wheelchair_id, jointIndex=1, controlMode=p.VELOCITY_CONTROL, targetVelocity=-1.0)
+    def start(self):
+        self.start_time_seconds = time.time()
 
+    def display_state(self):
+        print(f"\n--- CURRENT STATE ---")
+        print(f"Thermostat: {self.state['thermostat']}°F")
+        print(f"Lights: {'On' if self.state['lights_on'] else 'Off'}")
 
-# Task: Robotic arm for object retrieval
-def move_robotic_arm(gesture, arm_id):
-    if gesture == "move_left":
-        p.setJointMotorControl2(arm_id, jointIndex=0, controlMode=p.POSITION_CONTROL, targetPosition=-1.0)
-    elif gesture == "move_right":
-        p.setJointMotorControl2(arm_id, jointIndex=0, controlMode=p.POSITION_CONTROL, targetPosition=1.0)
-    elif gesture == "grasp":
-        p.setJointMotorControl2(arm_id, jointIndex=1, controlMode=p.POSITION_CONTROL, targetPosition=0.5)
-    elif gesture == "release":
-        p.setJointMotorControl2(arm_id, jointIndex=1, controlMode=p.POSITION_CONTROL, targetPosition=0.0)
+        print(f"\n--- GOAL STATE ---")
+        print(f"Thermostat: {self.goal['thermostat']}°F")
+        print(f"Lights: {'On' if self.goal['lights_on'] else 'Off'}\n")
 
+    def apply_command(self, command: str):
+        if command == "thermostat_up":
+            self.state["thermostat"] += 1
+        elif command == "thermostat_down":
+            self.state["thermostat"] -= 1
+        elif command == "lights_on":
+            self.state["lights_on"] = True
+        elif command == "lights_off":
+            self.state["lights_on"] = False
 
-# Task: lights, thermostat, etc.
-def control_environment(gesture):
-    if gesture == "turn_on_light":
-        print("Turning on the light...")
-    elif gesture == "turn_off_light":
-        print("Turning off the light...")
-    elif gesture == "increase_temp":
-        print("Increasing temperature...")
-    elif gesture == "decrease_temp":
-        print("Decreasing temperature...")
+    def update(self, current_time: float, image: bytes) -> Optional[bool]:
+        if current_time > self.time_limit_seconds + self.start_time_seconds:
+            print("Time expired.")
+            return False
 
+        recognized_gestures = self.recognizer.recognize(image, list(self.gesture_semantics.keys()))
 
-def main():
-    wheelchair_id, arm_id = initialize_simulation()
+        for gesture in recognized_gestures:
+            command = self.gesture_semantics.get(gesture)
+            if command:
+                print(f"Recognized gesture: {gesture}, executing command: {command}")
+                self.apply_command(command)
 
-    gesture_recognition = GestureRecognition()
-    gesture_interpreter = GestureInterpreter()
+        self.display_state()
 
-    while True:
-        captured_gesture = gesture_recognition.recognize_gesture()
-        interpreted_action = gesture_interpreter.interpret(captured_gesture)
+        if self.state == self.goal:
+            print("Success! Goal state reached.")
+            return True
 
-        if interpreted_action in ["move_forward", "move_backward", "turn_left", "turn_right"]:
-            navigate_wheelchair(interpreted_action, wheelchair_id)
-        elif interpreted_action in ["move_left", "move_right", "grasp", "release"]:
-            move_robotic_arm(interpreted_action, arm_id)
-        elif interpreted_action in ["turn_on_light", "turn_off_light", "increase_temp", "decrease_temp"]:
-            control_environment(interpreted_action)
+        return None
 
-        time.sleep(1)
-
-
-if __name__ == "__main__":
-    main()
