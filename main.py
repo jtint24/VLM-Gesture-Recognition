@@ -17,6 +17,20 @@ from simulation import ControlsSimulation
         Gesture("head nod", "Moving the head up and down to signal agreement."),
         Gesture("wave", "A hand movement used to greet or say goodbye."),
     ]
+    
+    gestures = [
+        Gesture("smile", "face smiling."),
+        Gesture("frown", "face frowning."),
+        Gesture("wink", "one eye is closed"),
+        Gesture("eyes open", "eyes are both open"),
+    ]
+    
+    hand_gestures = [
+        Gesture("open palm", "palm is open"),
+        Gesture("closed fist", "fist is closed"),
+        Gesture("one", "one finger is raised"),
+        Gesture("peace", "two fingers are raised")
+    ]
 
     print("capping image...")
     image = capture_image()
@@ -41,17 +55,17 @@ if __name__ == "__main__":
     recognizer = GestureRecognizer(model)
 
     gestures = [
-        Gesture("smile", "face smiling."),
-        Gesture("frown", "face frowning."),
-        Gesture("wink", "one eye is closed"),
-        Gesture("eyes open", "eyes are both open"),
+        Gesture("open palm", "palm is open"),
+        Gesture("closed fist", "fist is closed"),
+        Gesture("one", "one finger is raised"),
+        Gesture("peace", "two fingers are raised")
     ]
 
     gesture_semantics = {
-        gestures[0]: "thermostat_up",
-        gestures[1]: "thermostat_down",
-        gestures[2]: "lights_on",
-        gestures[3]: "lights_off",
+        gestures[0]: "thermostat_up", #open
+        gestures[1]: "thermostat_down",  #closed
+        gestures[2]: "lights_on",  #one
+        gestures[3]: "lights_off", #two
     }
 
     simulation = ControlsSimulation(
