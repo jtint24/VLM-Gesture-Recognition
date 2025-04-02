@@ -1,11 +1,13 @@
 import io
 import time
 
-from gesture_recognition import Gesture, GestureRecognizer, capture_image, PromptGestureRecognizer
-from model import Model, OllamaModel
+from gesture_recognition import Gesture, GestureRecognizer, capture_image, PromptGestureRecognizer, \
+    EmbeddingGestureRecognizer
+from model import Model, OllamaModel, OClipModel
 
 import PIL.Image as Image
 
+from oclip.src import app
 from simulation import ControlsSimulation
 
 """if __name__ == "__main__":
@@ -37,7 +39,9 @@ from simulation import ControlsSimulation
 
 
 if __name__ == "__main__":
-    model = OllamaModel("llava")
+    # app.startup()
+
+    model = OClipModel("hf-hub:apple/MobileCLIP-B-OpenCLIP")
 
     gestures = [
         Gesture("smile", "face smiling."),
@@ -47,7 +51,7 @@ if __name__ == "__main__":
     ]
 
 
-    recognizer = PromptGestureRecognizer(model, gestures)
+    recognizer = EmbeddingGestureRecognizer(model, gestures, 1)
 
 
 

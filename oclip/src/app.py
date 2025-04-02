@@ -115,6 +115,7 @@ def embed():
     startTime = time.time()
     if 1 < len(request.files):
         data = json.load(request.files['data'])
+        print("DATA", data)
         modelname = data[0]['model']
         clip = Clip(modelname)
         file = request.files['image']

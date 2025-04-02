@@ -34,7 +34,7 @@ class PromptGestureRecognizer(GestureRecognizer):
 
             response = self.model(prompt, [image_bytes], max_tokens=2)
 
-            print(prompt,response)
+            # print(prompt,response)
 
             if "yes" in response.lower():
                 recognized.append(gesture)
@@ -43,13 +43,13 @@ class PromptGestureRecognizer(GestureRecognizer):
 
 
 
-class EncodingGestureRecognizer(GestureRecognizer):
-    def __init__(self, model: Model, threshold, gestures: List[Gesture]):
+class EmbeddingGestureRecognizer(GestureRecognizer):
+    def __init__(self, model: Model, gestures: List[Gesture], threshold: float):
         self.model = model
         self.threshold = threshold
         self.gestures = gestures
-        self.gesture_encodings = {
-            gesture: self.model.embed(gesture.description)
+        self.gesture_embeddings = {
+            gesture: self.model.embed(text=gesture.description)
             for gesture in self.gestures
         }
 
@@ -58,13 +58,12 @@ class EncodingGestureRecognizer(GestureRecognizer):
         Given an image and a list of known gestures, return which ones are being performed.
         """
         recognized = []
-        for gesture, gesture_embedding in self.gesture_encodings:
 
-            response = self.model.embed("", [image_bytes], max_tokens=2)
+        image_embedding = self.model.embed(image=image_bytes)
 
-            # print(prompt,response)
-
-            if "yes" in response.lower():
+        for gesture, gesture_embedding in self.gesture_embeddings.items():
+            similarity = (100 * image_embedding @ gesture_embedding.T).softmax(dim=-1)
+            if similarity.item() >= self.threshold:
                 recognized.append(gesture)
 
         return recognized

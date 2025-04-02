@@ -6,7 +6,7 @@ import torch
 
 
 # This sample code will use the oclip server to compare one image to
-# an array of texts and print out the probapliity that each text 
+# an array of texts and print out the probability that each text
 # matches the image
 
 
