@@ -61,7 +61,7 @@ class ControlsSimulation:
             print("Time expired.")
             return False
 
-        recognized_gestures = self.recognizer.recognize(image, list(self.gesture_semantics.keys()))
+        recognized_gestures = self.recognizer.recognize(image)
 
         for gesture in recognized_gestures:
             command = self.gesture_semantics.get(gesture)

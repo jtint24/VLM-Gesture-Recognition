@@ -13,15 +13,23 @@ class Gesture(NamedTuple):
 
 
 class GestureRecognizer:
-    def __init__(self, model: Model):
-        self.model = model
+    def __init__(self, model: Model, gestures: List[Gesture]):
+        raise NotImplementedError
 
-    def recognize(self, image_bytes: bytes, gestures: List[Gesture]) -> List[Gesture]:
+    def recognize(self, image_bytes: bytes) -> List[Gesture]:
+        pass
+
+class PromptGestureRecognizer(GestureRecognizer):
+    def __init__(self, model: Model, gestures: List[Gesture]):
+        self.model = model
+        self.gestures = gestures
+
+    def recognize(self, image_bytes: bytes) -> List[Gesture]:
         """
         Given an image and a list of known gestures, return which ones are being performed.
         """
         recognized = []
-        for gesture in gestures:
+        for gesture in self.gestures:
             prompt = f"Is the following gesture being performed in the image?\n\n{gesture.name}: {gesture.description}\n\nRespond only with YES or NO."
 
             response = self.model(prompt, [image_bytes], max_tokens=2)
@@ -32,6 +40,35 @@ class GestureRecognizer:
                 recognized.append(gesture)
 
         return recognized
+
+
+
+class EncodingGestureRecognizer(GestureRecognizer):
+    def __init__(self, model: Model, threshold, gestures: List[Gesture]):
+        self.model = model
+        self.threshold = threshold
+        self.gestures = gestures
+        self.gesture_encodings = {
+            gesture: self.model.embed(gesture.description)
+            for gesture in self.gestures
+        }
+
+    def recognize(self, image_bytes: bytes) -> List[Gesture]:
+        """
+        Given an image and a list of known gestures, return which ones are being performed.
+        """
+        recognized = []
+        for gesture, gesture_embedding in self.gesture_encodings:
+
+            response = self.model.embed("", [image_bytes], max_tokens=2)
+
+            # print(prompt,response)
+
+            if "yes" in response.lower():
+                recognized.append(gesture)
+
+        return recognized
+
 
 
 def capture_image() -> Optional[bytes]:

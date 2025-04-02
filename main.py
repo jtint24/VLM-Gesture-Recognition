@@ -1,8 +1,8 @@
 import io
 import time
 
-from gesture_recognition import Gesture, GestureRecognizer, capture_image
-from model import Model
+from gesture_recognition import Gesture, GestureRecognizer, capture_image, PromptGestureRecognizer
+from model import Model, OllamaModel
 
 import PIL.Image as Image
 
@@ -37,8 +37,7 @@ from simulation import ControlsSimulation
 
 
 if __name__ == "__main__":
-    model = Model("llava")
-    recognizer = GestureRecognizer(model)
+    model = OllamaModel("llava")
 
     gestures = [
         Gesture("smile", "face smiling."),
@@ -46,6 +45,11 @@ if __name__ == "__main__":
         Gesture("wink", "one eye is closed"),
         Gesture("eyes open", "eyes are both open"),
     ]
+
+
+    recognizer = PromptGestureRecognizer(model, gestures)
+
+
 
     gesture_semantics = {
         gestures[0]: "thermostat_up",

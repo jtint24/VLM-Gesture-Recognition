@@ -13,6 +13,33 @@ A simple wrapper for Ollama models
 
 class Model:
     def __init__(self, name: str):
+        raise NotImplementedError
+
+    def __call__(self, message: str, images: Union[List[bytes], List[str]], max_tokens: int = -1):
+        pass
+
+
+class OClipModel(Model):
+    def __init__(self, name: str):
+        self.name = name
+
+
+    def __call__(self, message: str, images: Union[List[bytes], List[str]], max_tokens: int = -1):
+        """data = {"model": self.name},
+        files = [
+            ('image', (image, file, 'application,octet')),
+            ('data', ('data', json.dumps(data), 'application/json'))
+        ]
+        response = requests.post(
+            "http://localhost:11435/api/embed",
+            files=files,
+            timeout=20
+        )"""
+
+
+
+class OllamaModel(Model):
+    def __init__(self, name: str):
         self.name = name
 
     def __call__(self, message: str, images: Union[List[bytes], List[str]], max_tokens: int = -1):

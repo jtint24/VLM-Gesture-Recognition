@@ -1,0 +1,28 @@
+version: "3.4"
+
+services:
+  oclip:
+    image: ghcr.io/hoeflechner/oclip:main
+    container_name: oclip
+    restart: unless-stopped
+    ports:
+      - "11435:11435"
+    environment:
+      - MODELNAME=hf-hub:apple/MobileCLIP-B-OpenCLIP #default model
+      - DEVICE=cuda
+      - TIMEOUT=300 #unload the models after 300s if they are not used
+    volumes:
+      - "cache:/root/.cache/huggingface/hub/"
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  cache: {}
