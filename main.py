@@ -6,7 +6,7 @@ from model import Model
 
 import PIL.Image as Image
 
-from simulation import ControlsSimulation
+from wheelchair_simulation import wheelchair_sim
 
 """if __name__ == "__main__":
     model = Model("llava")
@@ -54,26 +54,51 @@ if __name__ == "__main__":
     model = Model("llava")
     recognizer = GestureRecognizer(model)
 
+    '''
     gestures = [
         Gesture("open palm", "palm is open"),
         Gesture("closed fist", "fist is closed"),
         Gesture("one", "one finger is raised"),
         Gesture("peace", "two fingers are raised")
     ]
-
+    '''
+    
+    gestures = [
+        Gesture("one", "One finger is raised"),
+        Gesture("peace", "Two fingers (V shape) are raised"),
+        Gesture("thumbs up", "Thumb is pointed upwards"),
+        Gesture("thumbs down", "Thumb is pointed downwards"),
+    ]
+    
+    '''
     gesture_semantics = {
         gestures[0]: "thermostat_up", #open
         gestures[1]: "thermostat_down",  #closed
         gestures[2]: "lights_on",  #one
         gestures[3]: "lights_off", #two
     }
+    '''
+    
+    gesture_semantics = {
+        gestures[0]: "forward",
+        gestures[1]: "backward",
+        gestures[2]: "left",
+        gestures[3]: "right",
+    }
 
+    '''
     simulation = ControlsSimulation(
         gesture_semantics=gesture_semantics,
         recognizer=recognizer,
         time_limit_seconds=60
     )
-
+    '''
+    simulation = wheelchair_sim(
+        gesture_semantics=gesture_semantics,
+        recognizer=recognizer,
+        time_limit_seconds=60
+    )
+    
     simulation.start()
     while True:
         image = capture_image()
