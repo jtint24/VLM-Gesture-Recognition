@@ -1,10 +1,19 @@
+import random
 import time
 import pybullet as p
 import pybullet_data
+from typing import Dict, Optional
 from gesture_recognition import Gesture, GestureRecognizer
 
 class wheelchair_sim:
-    def __init__(self, gesture_semantics, recognizer, time_limit_seconds=60):
+    def __init__(
+        self,
+        gesture_semantics: Dict[Gesture, str],
+        recognizer: GestureRecognizer,
+        time_limit_seconds = 60,
+        current_state = None,
+        goal_state = None
+    ):
         self.recognizer = recognizer
         self.gesture_semantics = gesture_semantics
         self.time_limit_seconds = time_limit_seconds
@@ -19,11 +28,22 @@ class wheelchair_sim:
         self.target_position = [0, 0, 0.1]  # initial position
 
         print("Wheelchair simulation started.")
+        
+        self.state = current_state or "stop"
+        self.goal = goal_state or random.choice(["forward", "backward", "left", "right"])
 
     def start(self):
         self.start_time_seconds = time.time()
+        
+    def display_state(self):
+        print("\n--- CURRENT STATE ---")
+        print(f"Last command: {self.state if self.state else 'None'}")
+
+        print("\n--- GOAL STATE ---")
+        print(f"Goal command: {self.goal if self.goal else 'None'}\n")
 
     def apply_command(self, command: str):
+        self.state = command
         step_size = 0.1
         if command == "forward":
             self.target_position[1] += step_size
@@ -48,5 +68,11 @@ class wheelchair_sim:
             if command:
                 print(f"Recognized gesture: {gesture.name}, executing command: {command}")
                 self.apply_command(command)
+
+        self.display_state()
+
+        if self.state == self.goal:
+            print("Success! Goal command achieved.")
+            return True
 
         return None
