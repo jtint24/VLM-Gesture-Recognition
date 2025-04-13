@@ -1,60 +1,34 @@
 import io
 import time
+import PIL.Image as Image
 
 from gesture_recognition import Gesture, GestureRecognizer, capture_image
 from model import Model
-
-import PIL.Image as Image
-
-from simulation import ControlsSimulation
-
-"""if __name__ == "__main__":
-    model = Model("llava")
-    recognizer = GestureRecognizer(model)
-
-    gestures = [
-        Gesture("thumbs-up", "Raising your hand with your thumb pointed upwards."),
-        Gesture("head nod", "Moving the head up and down to signal agreement."),
-        Gesture("wave", "A hand movement used to greet or say goodbye."),
-    ]
-
-    print("capping image...")
-    image = capture_image()
-
-    image_file = Image.open(io.BytesIO(image))
-    image_file.save("frame.jpg")
-
-    if image is not None:
-        print("recognizing gestures...")
-        recognized_gestures = recognizer.recognize(image, gestures)
-
-        if recognized_gestures:
-            print("Recognized gestures:")
-            for g in recognized_gestures:
-                print(f"- {g.name}")
-        else:
-            print("no gestures recognized")"""
-
+from robo_arm_sim import PandaArmSimulation  # Make sure this matches the name in your simulation.py
 
 if __name__ == "__main__":
     model = Model("llava")
     recognizer = GestureRecognizer(model)
 
     gestures = [
-        Gesture("smile", "face smiling."),
-        Gesture("frown", "face frowning."),
-        Gesture("wink", "one eye is closed"),
-        Gesture("eyes open", "eyes are both open"),
+        Gesture("point up", "Pointing upward with one finger."),
+        Gesture("point down", "Pointing downward."),
+        Gesture("point left", "Pointing to the left."),
+        Gesture("point right", "Pointing to the right."),
+        Gesture("point forward", "Pointing toward the camera."),
+        Gesture("point backward", "Pointing away from the camera."),
     ]
 
     gesture_semantics = {
-        gestures[0]: "thermostat_up",
-        gestures[1]: "thermostat_down",
-        gestures[2]: "lights_on",
-        gestures[3]: "lights_off",
+        gestures[0]: "point_up",
+        gestures[1]: "point_down",
+        gestures[2]: "point_left",
+        gestures[3]: "point_right",
+        gestures[4]: "point_forward",
+        gestures[5]: "point_backward",
     }
 
-    simulation = ControlsSimulation(
+    simulation = PandaArmSimulation(
         gesture_semantics=gesture_semantics,
         recognizer=recognizer,
         time_limit_seconds=60
@@ -63,7 +37,6 @@ if __name__ == "__main__":
     simulation.start()
     while True:
         image = capture_image()
-
         if image is None:
             break
 
@@ -76,8 +49,8 @@ if __name__ == "__main__":
         result = simulation.update(time.time(), image)
 
         if result is True:
-            print(f"Task completed successfully! time: {time.time() - simulation.start_time_seconds}")
+            print(f"Task completed successfully! Time: {time.time() - simulation.start_time_seconds:.2f} seconds")
             break
         elif result is False:
-            print("Task failed")
+            print("Task failed.")
             break
