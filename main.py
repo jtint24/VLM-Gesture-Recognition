@@ -4,29 +4,25 @@ import PIL.Image as Image
 
 from gesture_recognition import Gesture, GestureRecognizer, capture_image
 from model import Model
-from robo_arm_sim import PandaArmSimulation  # Make sure this matches the name in your simulation.py
+from robo_arm_sim import PandaArmSimulation  
 
 if __name__ == "__main__":
     model = Model("llava")
     recognizer = GestureRecognizer(model)
-
     gestures = [
-        Gesture("point up", "Pointing upward with one finger."),
-        Gesture("point down", "Pointing downward."),
-        Gesture("point left", "Pointing to the left."),
-        Gesture("point right", "Pointing to the right."),
-        Gesture("point forward", "Pointing toward the camera."),
-        Gesture("point backward", "Pointing away from the camera."),
+        Gesture("two fingers", "Show two fingers to move the robot forward."),
+        Gesture("three fingers", "Show three fingers to move the robot backward."),
+        Gesture("open hand", "Show open hand to open the gripper."),
+        Gesture("closed fist", "Show closed fist to close the gripper."),
     ]
 
     gesture_semantics = {
-        gestures[0]: "point_up",
-        gestures[1]: "point_down",
-        gestures[2]: "point_left",
-        gestures[3]: "point_right",
-        gestures[4]: "point_forward",
-        gestures[5]: "point_backward",
+        gestures[0]: "two_fingers",
+        gestures[1]: "three_fingers",
+        gestures[2]: "grip_open",
+        gestures[3]: "grip_close",
     }
+
 
     simulation = PandaArmSimulation(
         gesture_semantics=gesture_semantics,

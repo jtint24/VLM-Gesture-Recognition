@@ -21,14 +21,21 @@ class PandaArmSimulation:
         self.time_limit_seconds = time_limit_seconds
         self.start_time_seconds = -1
 
-        self.goal_position = np.array([0.6, 0.0, 0.2])  # Target position for end-effector
+        self.state = {
+            "position_x": 0.0,
+            "gripper_open": True
+        }
+        self.goal = {
+            "position_x": round(random.choice([x / 100 for x in range(-6, 7, 2)]), 2),
+            "gripper_open": random.choice([True, False])
+        }
 
         self.physics_client = p.connect(p.GUI)
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
         p.setGravity(0, 0, -9.81)
         self.plane = p.loadURDF("plane.urdf")
         self.robot = p.loadURDF("franka_panda/panda.urdf", useFixedBase=True)
-        self.ee_index = 11  # end effector link index
+        self.ee_index = 11
 
         for j in range(7):
             p.resetJointState(self.robot, j, 0.0)
@@ -40,29 +47,37 @@ class PandaArmSimulation:
         self.start_time_seconds = time.time()
 
     def display_state(self):
-        ee_pos = p.getLinkState(self.robot, self.ee_index)[4]
-        print(f"\n--- CURRENT EE POSITION ---\nEnd-Effector: {np.round(ee_pos, 3)}")
-        print(f"Goal Position: {np.round(self.goal_position, 3)}\n")
+        print(f"\n--- CURRENT STATE ---")
+        print(f"X Position Offset: {round(self.state['position_x'], 3)}")
+        print(f"Gripper: {'Open' if self.state['gripper_open'] else 'Closed'}")
+
+        print(f"\n--- GOAL STATE ---")
+        print(f"X Position Offset: {round(self.goal['position_x'], 3)}")
+        print(f"Gripper: {'Open' if self.goal['gripper_open'] else 'Closed'}\n")
 
     def apply_command(self, command: str):
-        ee_pos = np.array(p.getLinkState(self.robot, self.ee_index)[4])
         delta = 0.02
-        if command == "point_up":
-            ee_pos[2] += delta
-        elif command == "point_down":
-            ee_pos[2] -= delta
-        elif command == "point_left":
-            ee_pos[1] += delta
-        elif command == "point_right":
-            ee_pos[1] -= delta
-        elif command == "point_forward":
-            ee_pos[0] += delta
-        elif command == "point_backward":
-            ee_pos[0] -= delta
+        ee_pos = np.array(p.getLinkState(self.robot, self.ee_index)[4])
 
+        if command == "two_fingers":
+            self.state["position_x"] += delta
+        elif command == "three_fingers":
+            self.state["position_x"] -= delta
+        elif command == "grip_open":
+            self.state["gripper_open"] = True
+        elif command == "grip_close":
+            self.state["gripper_open"] = False
+
+        ee_pos[0] = 0.6 + self.state["position_x"]
         joint_poses = p.calculateInverseKinematics(self.robot, self.ee_index, ee_pos.tolist())
+
         for i in range(7):
             p.setJointMotorControl2(self.robot, i, p.POSITION_CONTROL, joint_poses[i], force=200)
+
+        gripper_val = 0.04 if self.state["gripper_open"] else 0.0
+        p.setJointMotorControl2(self.robot, 9, p.POSITION_CONTROL, gripper_val, force=200)
+        p.setJointMotorControl2(self.robot, 10, p.POSITION_CONTROL, gripper_val, force=200)
+
         for _ in range(10):
             p.stepSimulation()
             time.sleep(1 / 240)
@@ -82,9 +97,8 @@ class PandaArmSimulation:
 
         self.display_state()
 
-        ee_pos = np.array(p.getLinkState(self.robot, self.ee_index)[4])
-        if np.linalg.norm(ee_pos - self.goal_position) < 0.05:
-            print("Success! Goal position reached.")
+        if self.state == self.goal:
+            print("Success! Goal state reached.")
             return True
 
         return None
