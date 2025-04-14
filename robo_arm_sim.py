@@ -82,13 +82,13 @@ class PandaArmSimulation:
     def apply_command(self, command: str):
         delta = 0.02
         ee_pos = np.array(p.getLinkState(self.robot, self.ee_index)[4])
-        if command == "smile":
+        if command == "x_forward":
             self.state["position_x"] += delta
-        elif command == "frown":
+        elif command == "x_backward":
             self.state["position_x"] -= delta
-        elif command == "wink":
+        elif command == "gripper_close":
             self.state["gripper_open"] = False
-        elif command == "eyes_open":
+        elif command == "gripper_open":
             self.state["gripper_open"] = True
         """
         if command == "thumbs_up":
@@ -119,7 +119,7 @@ class PandaArmSimulation:
             print("Time expired.")
             return False
 
-        recognized_gestures = self.recognizer.recognize(image, list(self.gesture_semantics.keys()))
+        recognized_gestures = self.recognizer.recognize(image)
 
         for gesture in recognized_gestures:
             command = self.gesture_semantics.get(gesture)
