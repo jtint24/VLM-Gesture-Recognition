@@ -21,15 +21,24 @@ class PandaArmSimulation:
         self.time_limit_seconds = time_limit_seconds
         self.start_time_seconds = -1
 
+        # Random initial state
         self.state = {
-            "position_x": 0.0,
-            "gripper_open": True
-        }
-        self.goal = {
             "position_x": round(random.choice([x / 100 for x in range(-6, 7, 2)]), 2),
             "gripper_open": random.choice([True, False])
         }
 
+        # Random goal state, must be different from initial state
+        self.goal = {
+            "position_x": round(random.choice([x / 100 for x in range(-6, 7, 2)]), 2),
+            "gripper_open": random.choice([True, False])
+        }
+        while self.goal == self.state:
+            self.goal = {
+                "position_x": round(random.choice([x / 100 for x in range(-6, 7, 2)]), 2),
+                "gripper_open": random.choice([True, False])
+            }
+
+        # PyBullet setup
         self.physics_client = p.connect(p.GUI)
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
         p.setGravity(0, 0, -9.81)
@@ -39,6 +48,21 @@ class PandaArmSimulation:
 
         for j in range(7):
             p.resetJointState(self.robot, j, 0.0)
+
+        # Move to random initial state
+        ee_pos = [0.6 + self.state["position_x"], 0, 0.4]
+        joint_poses = p.calculateInverseKinematics(self.robot, self.ee_index, ee_pos)
+
+        for i in range(7):
+            p.setJointMotorControl2(self.robot, i, p.POSITION_CONTROL, joint_poses[i], force=200)
+
+        gripper_val = 0.04 if self.state["gripper_open"] else 0.0
+        p.setJointMotorControl2(self.robot, 9, p.POSITION_CONTROL, gripper_val, force=200)
+        p.setJointMotorControl2(self.robot, 10, p.POSITION_CONTROL, gripper_val, force=200)
+
+        for _ in range(30):
+            p.stepSimulation()
+            time.sleep(1 / 240)
 
         print("Simulation started.")
         self.display_state()
@@ -58,16 +82,24 @@ class PandaArmSimulation:
     def apply_command(self, command: str):
         delta = 0.02
         ee_pos = np.array(p.getLinkState(self.robot, self.ee_index)[4])
-
-        if command == "two_fingers":
+        if command == "smile":
             self.state["position_x"] += delta
-        elif command == "three_fingers":
+        elif command == "frown":
             self.state["position_x"] -= delta
-        elif command == "grip_open":
-            self.state["gripper_open"] = True
-        elif command == "grip_close":
+        elif command == "wink":
             self.state["gripper_open"] = False
-
+        elif command == "eyes_open":
+            self.state["gripper_open"] = True
+        """
+        if command == "thumbs_up":
+            self.state["position_x"] += delta
+        elif command == "thumbs_down":
+            self.state["position_x"] -= delta
+        elif command == "ok_sign":
+            self.state["gripper_open"] = True
+        elif command == "peace":
+            self.state["gripper_open"] = False
+        """           
         ee_pos[0] = 0.6 + self.state["position_x"]
         joint_poses = p.calculateInverseKinematics(self.robot, self.ee_index, ee_pos.tolist())
 
@@ -97,11 +129,15 @@ class PandaArmSimulation:
 
         self.display_state()
 
-        if self.state == self.goal:
+        if (
+            abs(self.state["position_x"] - self.goal["position_x"]) < 0.01 and
+            self.state["gripper_open"] == self.goal["gripper_open"]
+        ):
             print("Success! Goal state reached.")
             return True
 
         return None
+
 
     def close(self):
         p.disconnect()

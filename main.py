@@ -10,19 +10,32 @@ if __name__ == "__main__":
     model = Model("llava")
     recognizer = GestureRecognizer(model)
     gestures = [
-        Gesture("two fingers", "Show two fingers to move the robot forward."),
-        Gesture("three fingers", "Show three fingers to move the robot backward."),
-        Gesture("open hand", "Show open hand to open the gripper."),
-        Gesture("closed fist", "Show closed fist to close the gripper."),
+        Gesture("smile", "face smiling."),
+        Gesture("frown", "face frowning."),
+        Gesture("wink", "one eye is closed"),
+        Gesture("eyes open", "eyes are both open"),
+    ]
+    gesture_semantics = {
+        gestures[0]: "smile",
+        gestures[1]: "frown",
+        gestures[2]: "wink",
+        gestures[3]: "eyes_open",
+    }
+    """
+    gestures = [
+        Gesture("thumbs_up", "One hand with thumb raised straight up, other fingers closed. Palm facing sideways. Thumb not facing downwards"),
+        Gesture("thumbs_down", "One hand with thumb pointing straight down, other fingers closed. Palm facing sideways. Thumb not facing updawards"),
+        Gesture("ok_sign", "One hand with thumb and index finger forming a circle, other three fingers pointing up."),
+        Gesture("peace", "Hand showing index and middle fingers raised in a V-shape, other fingers folded. Palm facing outward.")
     ]
 
     gesture_semantics = {
-        gestures[0]: "two_fingers",
-        gestures[1]: "three_fingers",
-        gestures[2]: "grip_open",
-        gestures[3]: "grip_close",
+        gestures[0]: "thumbs_up",
+        gestures[1]: "thumbs_down",
+        gestures[2]: "ok_sign",
+        gestures[3]: "peace",
     }
-
+"""
 
     simulation = PandaArmSimulation(
         gesture_semantics=gesture_semantics,
