@@ -8,7 +8,8 @@ from model import Model, OllamaModel, OClipModel
 import PIL.Image as Image
 
 from oclip.src import app
-from simulation import ControlsSimulation
+from wheelchair_simulation import wheelchair_sim
+#from simulation import ControlsSimulation
 
 """if __name__ == "__main__":
     model = Model("llava")
@@ -43,23 +44,40 @@ if __name__ == "__main__":
 
     model = OClipModel("hf-hub:apple/MobileCLIP-B-OpenCLIP")
 
+    '''
     gestures = [
         Gesture("smile", "face smiling."),
         Gesture("frown", "face frowning."),
         Gesture("wink", "one eye is closed"),
         Gesture("eyes open", "eyes are both open"),
     ]
+    '''
+    
+    gestures = [
+        Gesture("one", "One finger is raised"),
+        Gesture("peace", "Two fingers (V shape) are raised"),
+        Gesture("thumbs up", "Thumb is pointed upwards"),
+        Gesture("thumbs down", "Thumb is pointed downwards"),
+    ]
 
 
     recognizer = EmbeddingGestureRecognizer(model, gestures, 1)
 
 
-
+    '''
     gesture_semantics = {
         gestures[0]: "thermostat_up",
         gestures[1]: "thermostat_down",
         gestures[2]: "lights_on",
         gestures[3]: "lights_off",
+    }
+    '''
+    
+    gesture_semantics = {
+        gestures[0]: "forward",
+        gestures[1]: "backward",
+        gestures[2]: "left",
+        gestures[3]: "right",
     }
 
     simulation = ControlsSimulation(
