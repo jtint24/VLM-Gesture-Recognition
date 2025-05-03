@@ -4,6 +4,8 @@ import cv2
 import time
 import io
 
+import numpy as np
+
 from model import Model
 
 
@@ -61,9 +63,16 @@ class EmbeddingGestureRecognizer(GestureRecognizer):
 
         image_embedding = self.model.embed(image=image_bytes)
 
+        img_emb_norm = image_embedding / np.linalg.norm(image_embedding)
+
         for gesture, gesture_embedding in self.gesture_embeddings.items():
-            similarity = (100 * image_embedding @ gesture_embedding.T).softmax(dim=-1)
-            if similarity.item() >= self.threshold:
+            gesture_emb_norm = gesture_embedding / np.linalg.norm(gesture_embedding)
+            
+            # Calculate cosine similarity explicitly
+            similarity = np.dot(img_emb_norm, gesture_emb_norm)
+
+            # Threshold now means similarity score between -1 and 1
+            if similarity >= self.threshold:
                 recognized.append(gesture)
 
         return recognized

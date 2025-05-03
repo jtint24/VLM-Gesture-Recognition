@@ -7,6 +7,8 @@ from model import Model, OllamaModel, OClipModel
 
 import PIL.Image as Image
 
+from numpy.linalg import norm
+
 from oclip.src import app
 from wheelchair_simulation import wheelchair_sim
 #from simulation import ControlsSimulation
@@ -60,9 +62,7 @@ if __name__ == "__main__":
         Gesture("thumbs down", "Thumb is pointed downwards"),
     ]
 
-
-    recognizer = EmbeddingGestureRecognizer(model, gestures, 1)
-
+    recognizer = EmbeddingGestureRecognizer(model, gestures, threshold=0.3)
 
     '''
     gesture_semantics = {
@@ -80,7 +80,7 @@ if __name__ == "__main__":
         gestures[3]: "right",
     }
 
-    simulation = ControlsSimulation(
+    simulation = wheelchair_sim(
         gesture_semantics=gesture_semantics,
         recognizer=recognizer,
         time_limit_seconds=60
